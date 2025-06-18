@@ -11,7 +11,7 @@ Hasil prediksi dianalisis secara real-time dan divisualisasikan pada dashboard i
 
 ## Struktur Proyek
 ```
-project-root/
+FINAL-PROJECT-BIG-DATA-A/
 ├── kafka-producer.py        # Mengirim gambar ke Kafka
 ├── kafka-consumer.py        # Menerima dan memproses gambar
 ├── dashboard.py             # Menampilkan hasil prediksi
