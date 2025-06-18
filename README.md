@@ -24,6 +24,7 @@ project-root/
 │   └── Training_set/        # Folder gambar training
 │   └── Test/                # Folder gambar test
 └── requirements.txt
+└── label_map.json           # List label klasifikasi gambar berdasarkan data training
 ```
 
 ## Prasyarat
