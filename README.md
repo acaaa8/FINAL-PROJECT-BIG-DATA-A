@@ -10,6 +10,7 @@ Hasil prediksi dianalisis secara real-time dan divisualisasikan pada dashboard i
 ![arsitektur FP](https://github.com/user-attachments/assets/25281628-0d15-4913-a356-0dbc4b3d181a)
 
 ## Strukture Proyek
+```
 project-root/
 ├── kafka-producer.py        # Mengirim gambar ke Kafka
 ├── kafka-consumer.py        # Menerima dan memproses gambar
@@ -23,3 +24,4 @@ project-root/
 │   └── Training_set/        # Folder gambar training
 │   └── Test/                # Folder gambar test
 └── requirements.txt
+```
