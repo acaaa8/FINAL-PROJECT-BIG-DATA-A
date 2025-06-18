@@ -70,4 +70,10 @@ streamlit run dashboard.py
 Dashboard akan otomatis memuat ulang setiap 10 detik dan menampilkan:
 
 - Distribusi aktivitas (%)
+
+![Cuplikan layar 2025-06-18 142915](https://github.com/user-attachments/assets/d605ce0b-41ba-4e7d-9841-64de15f688fb)
+  
 - Tabel event log: file name, aktivitas, confidence, dan timestamp
+
+ 
+![Cuplikan layar 2025-06-18 142926](https://github.com/user-attachments/assets/64decc53-20e5-4e4d-ac53-63bdcc0939a8)
