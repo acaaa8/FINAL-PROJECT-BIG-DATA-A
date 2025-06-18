@@ -1,0 +1,23 @@
+# Core Python Libraries
+numpy
+pandas
+opencv-python
+Pillow
+
+# Machine Learning
+torch
+torchvision
+scikit-learn
+
+# Kafka
+kafka-python
+
+# Dashboard & Visualization
+streamlit
+plotly
+
+# Time & Date Utilities
+python-dateutil
+
+# Optional (for file watching, etc.)
+watchdog
