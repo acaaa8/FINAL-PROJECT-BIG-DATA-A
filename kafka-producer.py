@@ -1,4 +1,5 @@
 import os
+import random
 import time
 import json
 import base64
@@ -7,7 +8,8 @@ from tqdm import tqdm
 
 FOLDER_PATH = '/home/iryandae/kafka_2.13-3.7.0/FP/data/test/' 
 TOPIC_NAME = 'raw-images' 
-SLEEP_TIME = 1
+SLEEP_MIN = 3
+SLEEP_MAX = 10
 
 producer = KafkaProducer(
     bootstrap_servers='localhost:9092',
@@ -32,7 +34,9 @@ for filename in tqdm(sorted(os.listdir(FOLDER_PATH))):
 
         producer.send(TOPIC_NAME, value=message)
         print(f"📤 Sent {filename}")
-        time.sleep(SLEEP_TIME)  # simulate streaming
+
+        SLEEP_TIME = random.uniform(SLEEP_MIN, SLEEP_MAX)
+        time.sleep(SLEEP_TIME)   
 
 producer.flush()
 print("✅ All images sent.")
