@@ -87,17 +87,6 @@ else:
         csv = filtered_df.to_csv(index=False).encode('utf-8')
         st.download_button("📥 Download Filtered Log as CSV", data=csv, file_name='activity_log.csv', mime='text/csv')
 
-    # Time Series Trend
-    with tab3:
-        st.subheader("📊 Activity Over Time")
-        trend_df = df.copy()
-        trend_df['Date'] = trend_df['timestamp'].dt.date
-        trend_summary = trend_df.groupby(['Date', 'prediction']).size().reset_index(name='Count')
-
-        fig = px.bar(trend_summary, x='Date', y='Count', color='prediction', barmode='stack',
-                     title='Daily Activity Count')
-        st.plotly_chart(fig, use_container_width=True)
-
 # Auto refresh
 time.sleep(REFRESH_RATE_SECONDS)
 st.rerun()
