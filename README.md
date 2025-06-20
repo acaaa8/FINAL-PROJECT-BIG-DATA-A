@@ -18,6 +18,9 @@ Dalam dunia kesehatan, pemantauan aktivitas harian individu – terutama lansia 
 - Membangun model klasifikasi aktivitas berbasis citra yang akurat.
 - Mengenali perilaku pengguna dari gambar aktivitas secara otomatis.
 - Mendeteksi aktivitas tidak sehat (misalnya duduk terlalu lama, menatap layar komputer secara berlebihan, atau pola tidur abnormal) melalui analisis persentase dan log aktivitas yang dilakukan.
+
+# Dataset yang digunakan
+https://www.kaggle.com/datasets/meetnagadia/human-action-recognition-har-dataset
   
 ## Arsitektur
 
