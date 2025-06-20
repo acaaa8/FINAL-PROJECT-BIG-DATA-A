@@ -71,14 +71,13 @@ Dashboard akan otomatis memuat ulang setiap 10 detik dan menampilkan:
 
 - Distribusi aktivitas (%)
 
-![image](https://github.com/user-attachments/assets/04bc3687-4afc-411e-ad2c-146e4aaccd07)
+![image](https://github.com/user-attachments/assets/baf2bf10-677c-4686-a757-dd70cb2b148d)
 
 ![Cuplikan layar 2025-06-20 120333](https://github.com/user-attachments/assets/017dec16-821f-43ad-9115-0532d0f26139)
   
 - Tabel event log: file name, aktivitas, confidence, dan timestamp
 
- 
-![image](https://github.com/user-attachments/assets/55a4cf6a-7345-4caf-974c-7ca3fbc3960d)
+![image](https://github.com/user-attachments/assets/4328becb-775d-4e62-b62c-177bd6dbf71b)
 
 ![Cuplikan layar 2025-06-20 120423](https://github.com/user-attachments/assets/0344c342-2b5f-4c73-98ae-67d8ec45ee61)
 
