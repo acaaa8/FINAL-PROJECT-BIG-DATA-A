@@ -10,15 +10,12 @@ import time
 st.set_page_config(page_title="Human Activity Dashboard", layout="wide")
 
 DATA_PATH = '/home/iryandae/kafka_2.13-3.7.0/FP/output/predictions.json'
+REFRESH_RATE_SECONDS = 10  # Auto refresh
 
-# === CONFIGURATION ===
-REFRESH_RATE_SECONDS = 10  # Auto refresh every N seconds
-
-# === LOAD PREDICTIONS ===
+# Load data
 def load_predictions():
     if not os.path.exists(DATA_PATH):
         return []
-
     predictions = []
     with open(DATA_PATH, 'r') as f:
         for line in f:
@@ -31,47 +28,76 @@ def load_predictions():
                 continue
     return predictions
 
-# === TITLE & TABS ===
+# === UI Layout ===
 st.title("📊 Human Activity Recognition Dashboard")
-tab1, tab2 = st.tabs(["📈 Overview", "📋 Event Log"])
-
-# === LOAD DATA ===
-predictions = load_predictions()
+tab1, tab2, tab3 = st.tabs(["📈 Overview", "📋 Event Log", "📊 Activity Trends"])
 warning_placeholder = st.empty()
+predictions = load_predictions()
 
 if not predictions:
-    # Delay before showing warning to avoid flash on auto-refresh
-    time.sleep(1)  # You can tune this
-    if not load_predictions():  # Check again after delay
+    time.sleep(1)
+    if not load_predictions():
         warning_placeholder.warning("❗ No predictions found.")
 else:
-    # Pie Chart
-    labels = [p['prediction'] for p in predictions]
-    counter = Counter(labels)
-    df_percent = pd.DataFrame({
-        'Activity': list(counter.keys()),
-        'Count': list(counter.values())
-    })
-    df_percent['Percentage'] = (df_percent['Count'] / df_percent['Count'].sum() * 100).round(2)
+    df = pd.DataFrame(predictions)
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
 
-    fig = px.pie(df_percent, names='Activity', values='Percentage',
-                 title='Activity Distribution (%)', hole=0.3)
-    fig.update_traces(textinfo='label+percent', textposition='inside')
+    # Summary Metrics
+    most_common = df['prediction'].mode()[0]
+    st.metric("📂 Total Predictions", len(df))
+    st.metric("🏷️ Most Frequent Activity", most_common)
 
+    # Overview Pie Chart
     with tab1:
-        st.subheader("📌 Activity Distribution Overview")
+        st.subheader("📌 Activity Distribution")
+        labels = df['prediction']
+        counter = Counter(labels)
+        df_percent = pd.DataFrame({
+            'Activity': list(counter.keys()),
+            'Count': list(counter.values())
+        })
+        df_percent['Percentage'] = (df_percent['Count'] / df_percent['Count'].sum() * 100).round(2)
+
+        fig = px.pie(df_percent, names='Activity', values='Percentage', hole=0.3,
+                     title='Activity Distribution (%)')
+        fig.update_traces(textinfo='label+percent', textposition='inside')
         st.plotly_chart(fig, use_container_width=True)
 
     # Event Log
-    df_log = pd.DataFrame(predictions)
-    df_log['timestamp'] = pd.to_datetime(df_log['timestamp'])
-    df_log = df_log[['filename', 'prediction', 'timestamp', 'confidence']]
-    df_log.columns = ['File Name', 'Activity', 'Timestamp', 'Confidence']
-
     with tab2:
-        st.subheader("📋 Detailed Event Log")
-        st.dataframe(df_log.sort_values(by='Timestamp', ascending=False), use_container_width=True)
+        st.subheader("📋 Event Log")
 
-# === AUTO REFRESH ===
+        # Filter Options
+        selected_activity = st.selectbox("🔍 Filter by Activity", options=["All"] + sorted(df['prediction'].unique().tolist()))
+        start_date = st.date_input("Start Date", df['timestamp'].min().date())
+        end_date = st.date_input("End Date", df['timestamp'].max().date())
+
+        filtered_df = df.copy()
+        if selected_activity != "All":
+            filtered_df = filtered_df[filtered_df['prediction'] == selected_activity]
+        filtered_df = filtered_df[(filtered_df['timestamp'].dt.date >= start_date) &
+                                  (filtered_df['timestamp'].dt.date <= end_date)]
+
+        filtered_df = filtered_df[['filename', 'prediction', 'timestamp', 'confidence']]
+        filtered_df.columns = ['File Name', 'Activity', 'Timestamp', 'Confidence']
+
+        st.dataframe(filtered_df.sort_values(by='Timestamp', ascending=False), use_container_width=True)
+
+        # Download button
+        csv = filtered_df.to_csv(index=False).encode('utf-8')
+        st.download_button("📥 Download Filtered Log as CSV", data=csv, file_name='activity_log.csv', mime='text/csv')
+
+    # Time Series Trend
+    with tab3:
+        st.subheader("📊 Activity Over Time")
+        trend_df = df.copy()
+        trend_df['Date'] = trend_df['timestamp'].dt.date
+        trend_summary = trend_df.groupby(['Date', 'prediction']).size().reset_index(name='Count')
+
+        fig = px.bar(trend_summary, x='Date', y='Count', color='prediction', barmode='stack',
+                     title='Daily Activity Count')
+        st.plotly_chart(fig, use_container_width=True)
+
+# Auto refresh
 time.sleep(REFRESH_RATE_SECONDS)
 st.rerun()
