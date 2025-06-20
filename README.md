@@ -21,6 +21,7 @@ Dalam dunia kesehatan, pemantauan aktivitas harian individu – terutama lansia 
 
 ## Dataset yang digunakan
 https://www.kaggle.com/datasets/meetnagadia/human-action-recognition-har-dataset
+Dataset ini berisi gambar-gambar aktivitas manusia yang sudah dilabeli ke dalam 15 kategori, lengkap dengan file metadata. Dataset ini ringan, terstruktur, dan sangat cocok digunakan untuk membangun model klasifikasi citra berbasis deep learning. Selain itu, dataset ini ideal untuk implementasi pipeline data lakehouse dan pemrosesan real-time seperti Kafka dan Streamlit, terutama dalam konteks pemantauan aktivitas untuk keperluan kesehatan atau keamanan.
   
 ## Arsitektur
 
