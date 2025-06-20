@@ -56,11 +56,15 @@ python3 kafka-producer.py
 ```
 Producer akan membaca file gambar dari folder dan mengirimkannya ke topic `raw-images`.
 
+![image](https://github.com/user-attachments/assets/58ecaa95-4784-4074-8337-b216aa0f9ad1)
+
 ### 2. Jalankan Kafka Consumer
 Menerima gambar, menjalankan prediksi dengan model CNN, lalu menyimpan hasil ke `predictions.json`:
 ```
 python3 kafka-consumer.py
 ```
+
+![image](https://github.com/user-attachments/assets/d9b818ce-a36c-4f97-b63a-a20abf730bf7)
 
 ### 3. Jalankan Dashboard Streamlit
 Akses dashboard dengan menjalankan *command* berikut:
