@@ -30,7 +30,7 @@ def load_predictions():
 
 # === UI Layout ===
 st.title("📊 Human Activity Recognition Dashboard")
-tab1, tab2, tab3 = st.tabs(["📈 Overview", "📋 Event Log", "📊 Activity Trends"])
+tab1, tab2 = st.tabs(["📈 Overview", "📋 Event Log"])
 warning_placeholder = st.empty()
 predictions = load_predictions()
 
