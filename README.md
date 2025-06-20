@@ -52,14 +52,14 @@ bin/kafka-topics.sh --create --topic raw-images --bootstrap-server localhost:909
 ### 1. Jalankan Kafka Producer
 Mengirim gambar dari folder dataset ke Kafka secara bertahap sebagai simulasi input dari kamera:
 ```
-python kafka-producer.py
+python3 kafka-producer.py
 ```
 Producer akan membaca file gambar dari folder dan mengirimkannya ke topic `raw-images`.
 
 ### 2. Jalankan Kafka Consumer
 Menerima gambar, menjalankan prediksi dengan model CNN, lalu menyimpan hasil ke `predictions.json`:
 ```
-python kafka-consumer.py
+python3 kafka-consumer.py
 ```
 
 ### 3. Jalankan Dashboard Streamlit
