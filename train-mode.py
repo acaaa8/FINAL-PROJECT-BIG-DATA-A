@@ -16,7 +16,7 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 IMAGE_SIZE = 96
 BUCKET = 'training-images'
 FOLDER = 'train/'
-CSV_LABELS = 'D:/FINAL-PROJECT-BIG-DATA-A-main/Human Action Recognition/Training_set.csv'
+CSV_LABELS = 'D:/FINAL-PROJECT-BIG-DATA-A-main/data/Training_set.csv'
 MODEL_PATH = 'model/har_efficientnet_model.h5'
 LABEL_MAP_PATH = 'label_map.json'
 
