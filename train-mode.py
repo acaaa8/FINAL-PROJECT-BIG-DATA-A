@@ -1,70 +1,112 @@
-import os
-import cv2
-import numpy as np
-import pandas as pd
+from minio import Minio
+import os, cv2, json
+import numpy as np, pandas as pd
 from tqdm import tqdm
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
-from tensorflow.keras.utils import to_categorical
+from io import BytesIO
 from sklearn.model_selection import train_test_split
-import json
+from tensorflow.keras.applications import EfficientNetB0
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import GlobalAveragePooling2D, Dropout, Dense, Input
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 
-# CONFIG
-IMAGE_SIZE = 64
-IMAGE_FOLDER = '/home/iryandae/kafka_2.13-3.7.0/FP/data/Training_set'
-CSV_LABELS = '/home/iryandae/kafka_2.13-3.7.0/FP/data/Training_set.csv'
-MODEL_NAME = '/home/iryandae/kafka_2.13-3.7.0/FP/model/har_cnn_model.h5'
+# === CONFIG
+IMAGE_SIZE = 96
+BUCKET = 'training-images'
+FOLDER = 'train/'
+CSV_LABELS = 'D:/FINAL-PROJECT-BIG-DATA-A-main/Human Action Recognition/Training_set.csv'
+MODEL_PATH = 'model/har_efficientnet_model.h5'
+LABEL_MAP_PATH = 'label_map.json'
 
-# Load dataset from CSV
-def load_dataset_from_csv(image_folder, csv_file):
-    df = pd.read_csv(csv_file)
-    X = []
-    y = []
-    label_set = sorted(df['label'].unique())
-    label_map = {label: idx for idx, label in enumerate(label_set)}
+# === MinIO Client
+client = Minio("localhost:9000", access_key="minioadmin", secret_key="minioadmin", secure=False)
 
-    for _, row in tqdm(df.iterrows(), total=len(df), desc="Loading images"):
-        img_path = os.path.join(image_folder, row['filename'])
-        label = row['label']
-        if not os.path.exists(img_path):
-            continue
-        img = cv2.imread(img_path)
-        if img is None:
-            continue
+# === Load Labels
+df_labels = pd.read_csv(CSV_LABELS)
+filename_to_label = dict(zip(df_labels['filename'], df_labels['label']))
+
+X, y, used_labels = [], [], []
+
+# === Load Images from MinIO
+print("📥 Loading training images from MinIO...")
+objects = client.list_objects(BUCKET, prefix=FOLDER, recursive=True)
+for obj in tqdm(objects):
+    filename = os.path.basename(obj.object_name)
+    if filename not in filename_to_label:
+        continue
+
+    label = filename_to_label[filename]
+    used_labels.append(label)
+
+    try:
+        response = client.get_object(BUCKET, obj.object_name)
+        img_bytes = np.frombuffer(response.read(), np.uint8)
+        img = cv2.imdecode(img_bytes, cv2.IMREAD_COLOR)
+        if img is None: continue
+
         img = cv2.resize(img, (IMAGE_SIZE, IMAGE_SIZE))
+        img = img.astype("float32") / 255.0  # Normalisasi
         X.append(img)
-        y.append(label_map[label])
+        y.append(label)
+    except Exception as e:
+        print(f"❌ Error loading {filename}: {e}")
 
-    X = np.array(X) / 255.0
-    y = to_categorical(y, num_classes=len(label_map))
-    return X, y, label_map
+# === Encode Labels
+label_set = sorted(set(used_labels))
+label_map = {label: idx for idx, label in enumerate(label_set)}
+y_encoded = [label_map[l] for l in y]
 
-# Build CNN Model
-def build_model(num_classes):
-    model = Sequential([
-        Conv2D(32, (3, 3), activation='relu', input_shape=(IMAGE_SIZE, IMAGE_SIZE, 3)),
-        MaxPooling2D((2, 2)),
-        Conv2D(64, (3, 3), activation='relu'),
-        MaxPooling2D((2, 2)),
-        Flatten(),
-        Dense(128, activation='relu'),
-        Dropout(0.5),
-        Dense(num_classes, activation='softmax')
-    ])
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    return model
+X = np.array(X)
+y = to_categorical(y_encoded, num_classes=len(label_map))
 
-# Main pipeline
-X, y, label_map = load_dataset_from_csv(IMAGE_FOLDER, CSV_LABELS)
-X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+# === Train-Test Split
+X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, stratify=y_encoded, random_state=42)
 
-model = build_model(num_classes=y.shape[1])
-model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=10, batch_size=32)
+# === Augmentasi
+datagen = ImageDataGenerator(
+    rotation_range=15,
+    zoom_range=0.15,
+    width_shift_range=0.1,
+    height_shift_range=0.1,
+    horizontal_flip=True,
+    brightness_range=(0.8, 1.2),
+    fill_mode='nearest'
+)
 
-# Save model and label map
-model.save(MODEL_NAME)
-with open('label_map.json', 'w') as f:
+# === EfficientNetB0 + Fine-tune
+base_model = EfficientNetB0(include_top=False, weights='imagenet', input_tensor=Input(shape=(IMAGE_SIZE, IMAGE_SIZE, 3)))
+x = GlobalAveragePooling2D()(base_model.output)
+x = Dropout(0.4)(x)
+output = Dense(len(label_map), activation='softmax')(x)
+model = Model(inputs=base_model.input, outputs=output)
+
+# Fine-tune hanya layer terakhir
+for layer in base_model.layers[:-20]:
+    layer.trainable = False
+
+model.compile(optimizer=Adam(1e-4), loss='categorical_crossentropy', metrics=['accuracy'])
+
+# === Callbacks
+callbacks = [
+    EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True),
+    ModelCheckpoint(MODEL_PATH, monitor='val_accuracy', save_best_only=True, verbose=1)
+]
+
+# === Train Model
+print("🚀 Starting training...")
+model.fit(
+    datagen.flow(X_train, y_train, batch_size=32),
+    validation_data=(X_val, y_val),
+    epochs=30,
+    callbacks=callbacks,
+    verbose=1
+)
+
+# === Save Outputs
+model.save(MODEL_PATH)
+with open(LABEL_MAP_PATH, 'w') as f:
     json.dump(label_map, f)
 
-print(f"✅ Model saved to {MODEL_NAME}")
-print(f"✅ Label map saved to label_map.json")
+print("✅ Model & label_map disimpan.")
