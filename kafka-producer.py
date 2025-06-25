@@ -1,42 +1,37 @@
-import os
-import random
-import time
-import json
-import base64
+from minio import Minio
 from kafka import KafkaProducer
+import json, base64, os, time
 from tqdm import tqdm
 
-FOLDER_PATH = '/home/iryandae/kafka_2.13-3.7.0/FP/data/test/' 
-TOPIC_NAME = 'raw-images' 
-SLEEP_MIN = 3
-SLEEP_MAX = 10
+BUCKET = 'training-images'
+PREFIX = 'test/'
+TOPIC = 'raw-images'
+MINIO_CLIENT = Minio('localhost:9000', access_key='minioadmin', secret_key='minioadmin', secure=False)
 
 producer = KafkaProducer(
     bootstrap_servers='localhost:9092',
     value_serializer=lambda v: json.dumps(v).encode('utf-8')
 )
 
-print(f"🚀 Sending images from {FOLDER_PATH} to Kafka topic '{TOPIC_NAME}'")
+print("🚀 Mengirim gambar dari MinIO ke Kafka...")
 
-for filename in tqdm(sorted(os.listdir(FOLDER_PATH))):
-    if not filename.lower().endswith(('.png', '.jpg', '.jpeg')):
-        continue
+objects = MINIO_CLIENT.list_objects(BUCKET, prefix=PREFIX, recursive=True)
+for obj in tqdm(objects):
+    if not obj.object_name.lower().endswith(('.jpg', '.jpeg', '.png')): continue
 
-    file_path = os.path.join(FOLDER_PATH, filename)
-    with open(file_path, 'rb') as f:
-        img_bytes = f.read()
-        img_b64 = base64.b64encode(img_bytes).decode('utf-8')
+    response = MINIO_CLIENT.get_object(BUCKET, obj.object_name)
+    img_bytes = response.read()
+    img_b64 = base64.b64encode(img_bytes).decode('utf-8')
+    filename = os.path.basename(obj.object_name)
 
-        message = {
-            "filename": filename,
-            "image": img_b64
-        }
+    message = {
+        "filename": filename,
+        "image": img_b64
+    }
 
-        producer.send(TOPIC_NAME, value=message)
-        print(f"📤 Sent {filename}")
-
-        SLEEP_TIME = random.uniform(SLEEP_MIN, SLEEP_MAX)
-        time.sleep(SLEEP_TIME)   
+    producer.send(TOPIC, value=message)
+    print(f"📤 Sent {filename}")
+    time.sleep(0.5)
 
 producer.flush()
-print("✅ All images sent.")
+print("✅ Semua gambar sudah dikirim.")
