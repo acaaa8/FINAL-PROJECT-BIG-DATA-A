@@ -8,15 +8,20 @@ Pillow
 torch
 torchvision
 scikit-learn
+tensorflow
 
 # Kafka
 kafka-python
+
+# Object Storage / Data Lake
+minio 
 
 # Dashboard & Visualization
 streamlit
 plotly
 
 # Time & Date Utilities
+tqdm                    
 python-dateutil
 
 # Optional (for file watching, etc.)
