@@ -59,7 +59,6 @@ FINAL-PROJECT
 │   └── image_name.jpg       # File jpg untuk test
 ├── output/
 │   └──image_name.jpg.json   # File hasil prediksi per gambar
-
 ```
 
 ## Prasyarat
@@ -122,9 +121,13 @@ streamlit run dashboard.py
 Dashboard akan otomatis memuat ulang data prediksi dari MinIO setiap beberapa detik dan menampilkan:
 
 - Distribusi aktivitas
+![Cuplikan layar 2025-06-27 054623](https://github.com/user-attachments/assets/f03a81aa-7573-4be8-b222-902f11ed93b6)
+
 - Tabel event log: file name, aktivitas, confidence, dan timestamp
+![Cuplikan layar 2025-06-27 054813](https://github.com/user-attachments/assets/272938e4-40a0-426a-bfc7-97c637807a9d)
 
 - Upload Gambar: Untuk mengunggah gambar baru secara langsung dari dashboard untuk diproses oleh pipeline
+![image](https://github.com/user-attachments/assets/fcd9ca9d-30b8-4f0f-8483-09a48387da36)
 
 ## Model yang Digunakan
 
