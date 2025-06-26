@@ -14,131 +14,106 @@ MODEL_PATH = 'D:\\fp big data\\FINAL-PROJECT-BIG-DATA-A\\model\\model.h5'
 LABEL_MAP_PATH = 'D:\\fp big data\\FINAL-PROJECT-BIG-DATA-A\\label_map.json'
 IMAGE_SIZE = 64
 BATCH_SIZE = 100
+BATCH_TIMEOUT_SECONDS = 5
 TOPIC = 'raw-images'
 BUCKET = 'training-images'
 OUTPUT_PREFIX = 'output/'
 
 # --- INISIALISASI ---
-
 print("⏳ Memuat model dan konfigurasi...")
-try:
-    # Memuat model Keras yang sudah dilatih
-    model = load_model(MODEL_PATH)
+model = load_model(MODEL_PATH)
+with open(LABEL_MAP_PATH) as f:
+    label_map = json.load(f)
+idx_to_label = {int(v): k for k, v in label_map.items()}
 
-    # Memuat mapping dari indeks ke label kelas
-    with open(LABEL_MAP_PATH) as f:
-        label_map = json.load(f)
-    idx_to_label = {v: k for k, v in label_map.items()}
-    print(f"✅ Model '{MODEL_PATH}' dan label map berhasil dimuat.")
-except Exception as e:
-    print(f"❌ Gagal memuat model atau label map: {e}")
-    exit()
-
-# Inisialisasi Kafka Consumer
-print("⏳ Menghubungkan ke Kafka...")
+# Set consumer_timeout_ms agar loop bisa memeriksa waktu secara berkala
 consumer = KafkaConsumer(
     TOPIC,
     bootstrap_servers='localhost:9092',
     value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-    auto_offset_reset='earliest', # Membaca dari pesan paling awal jika consumer baru
-    consumer_timeout_ms=30000 # Timeout setelah 30 detik jika tidak ada pesan baru
-)
-print(f"✅ Terhubung ke Kafka dan memantau topic '{TOPIC}'.")
-
-# Inisialisasi MinIO Client
-print("⏳ Menghubungkan ke MinIO...")
-minio_client = Minio(
-    'localhost:9000',
-    access_key='minioadmin',
-    secret_key='minioadmin',
-    secure=False
+    auto_offset_reset='earliest',
+    consumer_timeout_ms=1000  # Membuat loop tidak blok selamanya, tapi cek setiap 1 detik
 )
 
-# Pastikan bucket tujuan ada, jika tidak, buat bucket baru
+minio_client = Minio('localhost:9000', access_key='minioadmin', secret_key='minioadmin', secure=False)
 if not minio_client.bucket_exists(BUCKET):
     minio_client.make_bucket(BUCKET)
-    print(f"✅ Bucket '{BUCKET}' berhasil dibuat di MinIO.")
-else:
-    print(f"✅ Terhubung ke MinIO dan bucket '{BUCKET}' sudah ada.")
 
-# Buffer untuk menampung gambar dan metadata sebelum diproses secara batch
+print(f"\n🚀 Memulai proses konsumsi (Mode Hybrid: Batch Size={BATCH_SIZE}, Timeout={BATCH_TIMEOUT_SECONDS}s)...\n")
+
+# Buffer dan timer
 img_buf, meta_buf = [], []
+batch_start_time = None
 
-print("\n🚀 Memulai proses konsumsi pesan dari Kafka...\n")
+# --- FUNGSI UNTUK MEMPROSES BATCH (AGAR TIDAK DUPLIKASI KODE) ---
+def process_batch(image_buffer, metadata_buffer):
+    if not image_buffer:
+        return
 
-# --- LOOP KONSUMSI PESAN ---
+    print(f"\n🧠 Memproses batch berisi {len(image_buffer)} gambar...")
+    batch = np.array(image_buffer)
+    predictions = model.predict(batch)
 
-for msg in consumer:
-    try:
-        data = msg.value
-        
-        # 1. Decode gambar dari base64
-        img_data = base64.b64decode(data['image'])
-        img_np = np.frombuffer(img_data, np.uint8)
-        img = cv2.imdecode(img_np, cv2.IMREAD_COLOR)
+    for i, pred in enumerate(predictions):
+        pred_idx = int(np.argmax(pred))
+        label = idx_to_label.get(pred_idx, "tidak dikenal")
+        confidence = float(np.max(pred))
+        result = {
+            'filename': metadata_buffer[i]['filename'],
+            'prediction': label,
+            'confidence': round(confidence, 4),
+            'timestamp': metadata_buffer[i]['timestamp']
+        }
+        json_bytes = json.dumps(result, indent=2).encode('utf-8')
+        json_stream = BytesIO(json_bytes)
+        object_name = f"{OUTPUT_PREFIX}{result['filename']}.json"
+        minio_client.put_object(BUCKET, object_name, data=json_stream, length=len(json_bytes), content_type='application/json')
+        print(f"    ✅ Prediksi untuk '{result['filename']}' ({label}) berhasil diunggah.")
+    
+    image_buffer.clear()
+    metadata_buffer.clear()
+    print("...Buffer dikosongkan.\n")
 
-        if img is None:
-            print(f"⚠️ Gagal decode gambar: {data.get('filename', 'unknown')}")
-            continue
 
-        # 2. Preprocessing gambar agar sesuai dengan input model
-        img_resized = cv2.resize(img, (IMAGE_SIZE, IMAGE_SIZE))
-        img_array = img_to_array(img_resized) / 255.0
+# --- LOOP KONSUMSI UTAMA ---
+try:
+    while True:
+        # Loop ini akan berjalan terus menerus, mengambil pesan jika ada
+        for msg in consumer:
+            data = msg.value
+            filename = data.get('filename', 'unknown.jpg')
+            print(f"📥 Diterima: {filename}")
 
-        # 3. Tambahkan gambar dan metadatanya ke buffer
-        img_buf.append(img_array)
-        meta_buf.append({
-            'filename': data.get('filename', 'unknown.jpg'),
-            'timestamp': datetime.now().isoformat()
-        })
-        
-        print(f"📥 Diterima: {data.get('filename', 'unknown.jpg')}, Ukuran batch saat ini: {len(img_buf)}/{BATCH_SIZE}")
+            # Mulai timer jika ini adalah pesan pertama dalam batch
+            if not batch_start_time:
+                batch_start_time = time.time()
 
-        # 4. Jika buffer sudah penuh, lakukan prediksi secara batch
-        if len(img_buf) >= BATCH_SIZE:
-            print(f"\n🧠 Buffer penuh. Melakukan prediksi untuk {len(img_buf)} gambar...")
-            batch = np.array(img_buf)
-            predictions = model.predict(batch)
+            # Decode dan tambahkan ke buffer
+            img_data = base64.b64decode(data['image'])
+            img_np = np.frombuffer(img_data, np.uint8)
+            img = cv2.imdecode(img_np, cv2.IMREAD_COLOR)
+            if img is None: continue
+            
+            img_resized = cv2.resize(img, (IMAGE_SIZE, IMAGE_SIZE))
+            img_array = img_to_array(img_resized) / 255.0
+            img_buf.append(img_array)
+            meta_buf.append({'filename': filename, 'timestamp': datetime.now().isoformat()})
 
-            # 5. Proses setiap hasil prediksi dalam batch
-            for i, pred in enumerate(predictions):
-                # Dapatkan label dan confidence score
-                pred_idx = int(np.argmax(pred))
-                label = idx_to_label.get(pred_idx, "tidak dikenal")
-                confidence = float(np.max(pred))
+            # TRIGGER BERDASARKAN UKURAN: Jika buffer penuh, proses sekarang
+            if len(img_buf) >= BATCH_SIZE:
+                process_batch(img_buf, meta_buf)
+                batch_start_time = None # Reset timer
 
-                # Siapkan hasil dalam format JSON
-                result = {
-                    'filename': meta_buf[i]['filename'],
-                    'prediction': label,
-                    'confidence': round(confidence, 4),
-                    'timestamp': meta_buf[i]['timestamp']
-                }
+        # TRIGGER BERDASARKAN WAKTU: Cek setelah loop consumer selesai (atau timeout)
+        # Jika ada sesuatu di buffer dan sudah waktunya, proses sekarang
+        if batch_start_time and (time.time() - batch_start_time >= BATCH_TIMEOUT_SECONDS):
+            process_batch(img_buf, meta_buf)
+            batch_start_time = None # Reset timer
 
-                # 6. Upload hasil prediksi ke MinIO secara efisien (in-memory)
-                json_bytes = json.dumps(result, indent=2).encode('utf-8')
-                json_stream = BytesIO(json_bytes)
-                
-                # Nama file output di MinIO (contoh: output/image_01.jpg.json)
-                object_name = f"{OUTPUT_PREFIX}{result['filename']}.json"
-
-                minio_client.put_object(
-                    bucket_name=BUCKET,
-                    object_name=object_name,
-                    data=json_stream,
-                    length=len(json_bytes),
-                    content_type='application/json'
-                )
-                print(f"    ✅ Prediksi untuk '{result['filename']}' ({label}) berhasil diunggah ke MinIO.")
-
-            # Kosongkan buffer setelah batch diproses
-            img_buf.clear()
-            meta_buf.clear()
-            print(" emptied.\n")
-
-    except json.JSONDecodeError:
-        print("❌ Error: Pesan bukan format JSON yang valid.")
-    except Exception as e:
-        print(f"❌ Terjadi error tak terduga: {e}")
-
-print("\n🏁 Consumer berhenti (timeout atau diinterupsi).")
+except KeyboardInterrupt:
+    print("\n🛑 Proses dihentikan oleh pengguna.")
+finally:
+    # Proses sisa batch terakhir sebelum keluar
+    print("⏳ Memproses sisa gambar di buffer sebelum keluar...")
+    process_batch(img_buf, meta_buf)
+    print("🏁 Consumer berhenti.")
