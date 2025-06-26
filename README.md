@@ -33,6 +33,18 @@ Dataset ini berisi gambar-gambar aktivitas manusia yang sudah dilabeli ke dalam 
 
 ![arsitektur FP](https://github.com/user-attachments/assets/25281628-0d15-4913-a356-0dbc4b3d181a)
 
+## Model yang Digunakan
+
+Proyek ini menggunakan model Convolutional Neural Network (CNN) yang dibangun dengan TensorFlow/Keras. Arsitektur ini dirancang khusus untuk tugas klasifikasi gambar dan terdiri dari beberapa komponen utama:
+
+- **Blok Konvolusi:** Beberapa tumpukan lapisan Conv2D untuk mengekstraksi fitur visual dari gambar, mulai dari tepi dan tekstur sederhana hingga bentuk dan objek yang kompleks.
+- **Batch Normalization:** Digunakan setelah setiap lapisan konvolusi untuk menstabilkan dan mempercepat proses training.
+- **MaxPooling:** Meringkas fitur dan mengurangi dimensi gambar.
+- **Dropout:** Teknik regularisasi yang kuat untuk mencegah model overfitting (terlalu menghafal data training).
+- **Classifier Head:** Lapisan Dense untuk membuat keputusan akhir, dengan lapisan output menggunakan aktivasi softmax untuk menghasilkan probabilitas prediksi untuk setiap kelas aktivitas.
+
+Model ini dilatih untuk mengatasi ketidakseimbangan kelas dalam dataset dengan menggunakan class_weight, memastikan model dapat mengenali semua aktivitas dengan baik, bukan hanya yang paling umum.
+
 ## Struktur Proyek
 
 ```
@@ -128,15 +140,3 @@ Dashboard akan otomatis memuat ulang data prediksi dari MinIO setiap beberapa de
 
 - Upload Gambar: Untuk mengunggah gambar baru secara langsung dari dashboard untuk diproses oleh pipeline
 ![image](https://github.com/user-attachments/assets/fcd9ca9d-30b8-4f0f-8483-09a48387da36)
-
-## Model yang Digunakan
-
-Proyek ini menggunakan model Convolutional Neural Network (CNN) yang dibangun dengan TensorFlow/Keras. Arsitektur ini dirancang khusus untuk tugas klasifikasi gambar dan terdiri dari beberapa komponen utama:
-
-- **Blok Konvolusi:** Beberapa tumpukan lapisan Conv2D untuk mengekstraksi fitur visual dari gambar, mulai dari tepi dan tekstur sederhana hingga bentuk dan objek yang kompleks.
-- **Batch Normalization:** Digunakan setelah setiap lapisan konvolusi untuk menstabilkan dan mempercepat proses training.
-- **MaxPooling:** Meringkas fitur dan mengurangi dimensi gambar.
-- **Dropout:** Teknik regularisasi yang kuat untuk mencegah model overfitting (terlalu menghafal data training).
-- **Classifier Head:** Lapisan Dense untuk membuat keputusan akhir, dengan lapisan output menggunakan aktivasi softmax untuk menghasilkan probabilitas prediksi untuk setiap kelas aktivitas.
-
-Model ini dilatih untuk mengatasi ketidakseimbangan kelas dalam dataset dengan menggunakan class_weight, memastikan model dapat mengenali semua aktivitas dengan baik, bukan hanya yang paling umum.
