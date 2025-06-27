@@ -1,4 +1,4 @@
-![ChatGPT Image Jun 27, 2025, 02_14_01 PM](https://github.com/user-attachments/assets/2fab29fa-f0ff-4b92-bde2-c4e0c591bb7e)# FINAL-PROJECT-BIG-DATA-A
+# FINAL-PROJECT-BIG-DATA-A
 
 ## Anggota Kelompok:
 
