@@ -1,4 +1,4 @@
-# FINAL-PROJECT-BIG-DATA-A
+![ChatGPT Image Jun 27, 2025, 02_14_01 PM](https://github.com/user-attachments/assets/2fab29fa-f0ff-4b92-bde2-c4e0c591bb7e)# FINAL-PROJECT-BIG-DATA-A
 
 ## Anggota Kelompok:
 
@@ -31,7 +31,15 @@ Dataset ini berisi gambar-gambar aktivitas manusia yang sudah dilabeli ke dalam 
 
 ## Arsitektur
 
-![arsitektur FP](https://github.com/user-attachments/assets/25281628-0d15-4913-a356-0dbc4b3d181a)
+![arsitektur](https://github.com/user-attachments/assets/bebf0a98-3d0f-4933-bab1-c7f22b43a61e)
+
+1. **User Upload:** Pengguna mengupload gambar melalui antarmuka Streamlit UI.
+2. **Kafka Producer:** Setelah gambar di-upload, gambar tersebut diteruskan ke Kafka Producer untuk diproses dan dikirim sebagai pesan dalam bentuk base64 ke Kafka.
+3. **Kafka Consumer:** Kafka Consumer menerima gambar yang telah dikirim dan mulai memproses gambar tersebut. Gambar didekode, di-resize, dan diproses dalam batch.
+4. **Model:** Pada tahap ini, gambar yang telah diproses diteruskan ke model CNN (Convolutional Neural Network) untuk diprediksi. Model ini telah dilatih sebelumnya menggunakan data gambar yang ada di MinIO dan label yang sesuai.
+5. **Batch Prediction:** Model mengolah batch gambar, melakukan prediksi untuk setiap gambar, dan menghasilkan hasil prediksi berupa label aktivitas serta tingkat kepercayaan.
+6. **Upload to MinIO:** Hasil prediksi dan metadata gambar (seperti nama file dan timestamp) kemudian disimpan sebagai file JSON di MinIO, yang berfungsi sebagai tempat penyimpanan objek.
+7. **Streamlit UI:** Data yang disimpan di MinIO dapat diakses kembali oleh antarmuka pengguna melalui Streamlit UI untuk melihat statistik dan log aktivitas secara real-time, serta mengunduh hasil log prediksi.
 
 ## Model yang Digunakan
 
