@@ -80,6 +80,8 @@ FINAL-PROJECT
 ├── output/
 │   └──image_name.jpg.json   # File hasil prediksi per gambar
 ```
+![image](https://github.com/user-attachments/assets/6419c74a-2223-410b-bca7-fff236dae916)
+
 
 ## Prasyarat
 
@@ -118,7 +120,7 @@ Skrip ini akan membaca gambar dari MinIO (folder test/) dan mengirimkannya satu 
 python3 kafka-producer.py
 ```
 
-![image](https://github.com/user-attachments/assets/58ecaa95-4784-4074-8337-b216aa0f9ad1)
+![image](https://github.com/user-attachments/assets/7847f783-63ac-4999-be79-5b323d0fa15e)
 
 ### 3. Jalankan Kafka Consumer
 
@@ -127,8 +129,10 @@ Menerima pesan gambar dari Kafka, melakukan preprocessing, menjalankan prediksi 
 ```
 python3 kafka-consumer.py
 ```
+![image](https://github.com/user-attachments/assets/242cabc0-9303-40d1-9d6b-228122b24c98)
 
-![image](https://github.com/user-attachments/assets/d9b818ce-a36c-4f97-b63a-a20abf730bf7)
+
+![image](https://github.com/user-attachments/assets/57c60cfc-239d-434e-9c3b-2def171eb9f8)
 
 ### 4. Jalankan Dashboard Streamlit
 
@@ -151,9 +155,9 @@ Dashboard akan otomatis memuat ulang data prediksi dari MinIO setiap beberapa de
 
 
 ## Menjalankan Proyek
-1. Menjalankan command `autostream.py`
+1. Menjalankan command `python autostream.py`
    ![image](https://github.com/user-attachments/assets/20427d10-8cb9-4376-9d76-4e4d96c853c8)
-2. Kemudian tab baru akan terbuka dan menjalankan `python kafka-consumer.py`, `python kafka-producer.py`, dan `streamlit dashboard.py`
+2. Kemudian tab baru akan terbuka dan menjalankan `python kafka-consumer.py`, `python kafka-producer.py`, dan `streamlit run dashboard.py`
    - `kafka-consumer`
      ![image](https://github.com/user-attachments/assets/709319df-836e-4655-af33-bd3523d82a29)
    - `kafka-producer`
