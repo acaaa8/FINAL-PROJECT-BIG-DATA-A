@@ -30,8 +30,7 @@ https://www.kaggle.com/datasets/meetnagadia/human-action-recognition-har-dataset
 Dataset ini berisi gambar-gambar aktivitas manusia yang sudah dilabeli ke dalam 15 kategori, lengkap dengan file metadata. Dataset ini ringan, terstruktur, dan sangat cocok digunakan untuk membangun model klasifikasi citra berbasis deep learning. Selain itu, dataset ini ideal untuk implementasi pipeline data lakehouse dan pemrosesan real-time seperti Kafka dan Streamlit, terutama dalam konteks pemantauan aktivitas untuk keperluan kesehatan atau keamanan.
 
 ## Arsitektur
-
-![image](https://github.com/user-attachments/assets/0b0f2da3-6bc2-4a73-84b2-feb6a758f2bc)
+![image](https://github.com/user-attachments/assets/ccde611e-10c3-46b8-aefe-5e014dd3bd2f)
 
 ## Model yang Digunakan
 
