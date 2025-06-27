@@ -153,13 +153,16 @@ Dashboard akan otomatis memuat ulang data prediksi dari MinIO setiap beberapa de
 ## Menjalankan Proyek
 1. Menjalankan command `autostream.py`
    ![image](https://github.com/user-attachments/assets/20427d10-8cb9-4376-9d76-4e4d96c853c8)
-2. Kemudian tab baru akan terbuka dan menjalankan `kafka-consumer.py`, `kafka-producer.py`, dan `train-mode.py`
-   ![image](https://github.com/user-attachments/assets/709319df-836e-4655-af33-bd3523d82a29)
-   ![image](https://github.com/user-attachments/assets/7983d779-0321-444d-89a0-c2bce834a3ef)
+2. Kemudian tab baru akan terbuka dan menjalankan `python kafka-consumer.py`, `python kafka-producer.py`, dan `streamlit dashboard.py`
+   - `kafka-consumer`
+     ![image](https://github.com/user-attachments/assets/709319df-836e-4655-af33-bd3523d82a29)
+   - `kafka-producer`
+     ![image](https://github.com/user-attachments/assets/7983d779-0321-444d-89a0-c2bce834a3ef)
+   - `dashboard.py`
    ![image](https://github.com/user-attachments/assets/248eb891-30c6-497b-9ef2-cb392aab6357)
-3. Kemudian untuk memasukkan gambar tambahan, masuk ke fitur upload gambar dan pilih foto yang diinginkan
+4. Kemudian untuk memasukkan gambar tambahan, masuk ke fitur upload gambar dan pilih foto yang diinginkan
    ![image](https://github.com/user-attachments/assets/d087bb8a-afb7-4ed9-8232-bc06d64a9e57)
-4. Setelah menunggu beberapa saat, hasilnya akan terlihat di Event Log
+5. Setelah menunggu beberapa saat, hasilnya akan terlihat di Event Log
    ![Cuplikan layar 2025-06-27 170911](https://github.com/user-attachments/assets/a0439ca8-e43e-418f-8aaa-1eb5dbb4b1e7)
 
    
