@@ -6,7 +6,7 @@
 | ------------------------------- | ---------- |
 | Fadlillah Cantika Sari Hermawan | 5027231042 |
 | Elgracito Iryanda Endia         | 5027231057 |
-| Syela Zeruya T. L.              | 5027231076 |
+| Syela Zeruya Tandi Lalong              | 5027231076 |
 
 # Human Activity Recognition - Kafka Lakehouse Pipeline
 
