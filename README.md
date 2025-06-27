@@ -33,14 +33,6 @@ Dataset ini berisi gambar-gambar aktivitas manusia yang sudah dilabeli ke dalam 
 
 ![image](https://github.com/user-attachments/assets/0b0f2da3-6bc2-4a73-84b2-feb6a758f2bc)
 
-1. **User Upload:** Pengguna mengupload gambar melalui antarmuka Streamlit UI.
-2. **Kafka Producer:** Setelah gambar di-upload, gambar tersebut diteruskan ke Kafka Producer untuk diproses dan dikirim sebagai pesan dalam bentuk base64 ke Kafka.
-3. **Kafka Consumer:** Kafka Consumer menerima gambar yang telah dikirim dan mulai memproses gambar tersebut. Gambar didekode, di-resize, dan diproses dalam batch.
-4. **Model:** Pada tahap ini, gambar yang telah diproses diteruskan ke model CNN (Convolutional Neural Network) untuk diprediksi. Model ini telah dilatih sebelumnya menggunakan data gambar yang ada di MinIO dan label yang sesuai.
-5. **Batch Prediction:** Model mengolah batch gambar, melakukan prediksi untuk setiap gambar, dan menghasilkan hasil prediksi berupa label aktivitas serta tingkat kepercayaan.
-6. **Upload to MinIO:** Hasil prediksi dan metadata gambar (seperti nama file dan timestamp) kemudian disimpan sebagai file JSON di MinIO, yang berfungsi sebagai tempat penyimpanan objek.
-7. **Streamlit UI:** Data yang disimpan di MinIO dapat diakses kembali oleh antarmuka pengguna melalui Streamlit UI untuk melihat statistik dan log aktivitas secara real-time, serta mengunduh hasil log prediksi.
-
 ## Model yang Digunakan
 
 Proyek ini menggunakan model Convolutional Neural Network (CNN) yang dibangun dengan TensorFlow/Keras. Arsitektur ini dirancang khusus untuk klasifikasi gambar dan terdiri dari beberapa komponen utama:
@@ -106,42 +98,26 @@ bin/kafka-server-start.sh config/server.properties
 bin/kafka-topics.sh --create --topic raw-images --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
 ```
 
-## Langkah Eksekusi Program
+## Alur Kerja
 
 ### 1. Train Model
-
 Sebelum menjalankan pipeline, model dilatih terlebih dahulu. Skrip ini akan membaca data dari MinIO, melatih model, dan menyimpan file model .h5 ke folder model/
 
-### 2. Jalankan Kafka Producer
+![Cuplikan layar 2025-06-27 184636](https://github.com/user-attachments/assets/14753f30-789e-4d7c-aaa4-105a98194711)
+![image](https://github.com/user-attachments/assets/9a6c1ba9-80f7-4c5a-a408-ee860880ebf2)
 
+### 2. Kafka Producer
 Skrip ini akan membaca gambar dari MinIO (folder test/) dan mengirimkannya satu per satu ke topic Kafka raw-images sebagai simulasi input data secara real-time
-
-```
-python3 kafka-producer.py
-```
 
 ![image](https://github.com/user-attachments/assets/7847f783-63ac-4999-be79-5b323d0fa15e)
 
-### 3. Jalankan Kafka Consumer
-
+### 3. Kafka Consumer
 Menerima pesan gambar dari Kafka, melakukan preprocessing, menjalankan prediksi dengan model yang sudah dilatih, dan menyimpan hasil prediksi (dalam format JSON) ke MinIO di folder output/
 
-```
-python3 kafka-consumer.py
-```
+![image](https://github.com/user-attachments/assets/57c60cfc-239d-434e-9c3b-2def171eb9f8)
 ![image](https://github.com/user-attachments/assets/242cabc0-9303-40d1-9d6b-228122b24c98)
 
-
-![image](https://github.com/user-attachments/assets/57c60cfc-239d-434e-9c3b-2def171eb9f8)
-
-### 4. Jalankan Dashboard Streamlit
-
-Akses dashboard dengan menjalankan _command_ berikut:
-
-```
-streamlit run dashboard.py
-```
-
+### 4. Dashboard 
 Dashboard akan otomatis memuat ulang data prediksi dari MinIO setiap beberapa detik dan menampilkan:
 
 - Distribusi aktivitas
@@ -154,19 +130,25 @@ Dashboard akan otomatis memuat ulang data prediksi dari MinIO setiap beberapa de
 ![image](https://github.com/user-attachments/assets/fcd9ca9d-30b8-4f0f-8483-09a48387da36)
 
 
-## Menjalankan Proyek
-1. Menjalankan command `python autostream.py`
+## Menjalankan Proyek Menggunakan 1 Command 
+1. Setelah train, jalankan script dengan command berikut:
+   ```
+   python autostream.py`
+   ```
    ![image](https://github.com/user-attachments/assets/20427d10-8cb9-4376-9d76-4e4d96c853c8)
-2. Kemudian tab baru akan terbuka dan menjalankan `python kafka-consumer.py`, `python kafka-producer.py`, dan `streamlit run dashboard.py`
+
+2. Setalah perintah di atas dijalankan, tiga layanan utama akan dimulai secara otomatis
    - `kafka-consumer`
      ![image](https://github.com/user-attachments/assets/709319df-836e-4655-af33-bd3523d82a29)
    - `kafka-producer`
      ![image](https://github.com/user-attachments/assets/7983d779-0321-444d-89a0-c2bce834a3ef)
    - `dashboard.py`
    ![image](https://github.com/user-attachments/assets/248eb891-30c6-497b-9ef2-cb392aab6357)
-4. Kemudian untuk memasukkan gambar tambahan, masuk ke fitur upload gambar dan pilih foto yang diinginkan
+
+3. Kemudian untuk memasukkan gambar tambahan, masuk ke fitur upload gambar dan pilih foto yang diinginkan
    ![image](https://github.com/user-attachments/assets/d087bb8a-afb7-4ed9-8232-bc06d64a9e57)
-5. Setelah menunggu beberapa saat, hasilnya akan terlihat di Event Log
+
+4. Setelah menunggu beberapa saat, hasilnya akan terlihat di Event Log
    ![Cuplikan layar 2025-06-27 170911](https://github.com/user-attachments/assets/a0439ca8-e43e-418f-8aaa-1eb5dbb4b1e7)
 
    
