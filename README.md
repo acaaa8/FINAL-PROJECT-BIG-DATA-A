@@ -43,7 +43,7 @@ Dataset ini berisi gambar-gambar aktivitas manusia yang sudah dilabeli ke dalam 
 
 ## Model yang Digunakan
 
-Proyek ini menggunakan model Convolutional Neural Network (CNN) yang dibangun dengan TensorFlow/Keras. Arsitektur ini dirancang khusus untuk tugas klasifikasi gambar dan terdiri dari beberapa komponen utama:
+Proyek ini menggunakan model Convolutional Neural Network (CNN) yang dibangun dengan TensorFlow/Keras. Arsitektur ini dirancang khusus untuk klasifikasi gambar dan terdiri dari beberapa komponen utama:
 
 - **Blok Konvolusi:** Beberapa tumpukan lapisan Conv2D untuk mengekstraksi fitur visual dari gambar, mulai dari tepi dan tekstur sederhana hingga bentuk dan objek yang kompleks.
 - **Batch Normalization:** Digunakan setelah setiap lapisan konvolusi untuk menstabilkan dan mempercepat proses training.
