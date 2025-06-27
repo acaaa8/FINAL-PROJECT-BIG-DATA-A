@@ -148,3 +148,21 @@ Dashboard akan otomatis memuat ulang data prediksi dari MinIO setiap beberapa de
 
 - Upload Gambar: Untuk mengunggah gambar baru secara langsung dari dashboard untuk diproses oleh pipeline
 ![image](https://github.com/user-attachments/assets/fcd9ca9d-30b8-4f0f-8483-09a48387da36)
+
+
+## Menjalankan Proyek
+1. Menjalankan command `autostream.py`
+   ![image](https://github.com/user-attachments/assets/20427d10-8cb9-4376-9d76-4e4d96c853c8)
+2. Kemudian tab baru akan terbuka dan menjalankan `kafka-consumer.py`, `kafka-producer.py`, dan `train-mode.py`
+   ![image](https://github.com/user-attachments/assets/709319df-836e-4655-af33-bd3523d82a29)
+   ![image](https://github.com/user-attachments/assets/7983d779-0321-444d-89a0-c2bce834a3ef)
+   ![image](https://github.com/user-attachments/assets/248eb891-30c6-497b-9ef2-cb392aab6357)
+3. Kemudian untuk memasukkan gambar tambahan, masuk ke fitur upload gambar dan pilih foto yang diinginkan
+   ![image](https://github.com/user-attachments/assets/d087bb8a-afb7-4ed9-8232-bc06d64a9e57)
+4. Setelah menunggu beberapa saat, hasilnya akan terlihat di Event Log
+   ![Cuplikan layar 2025-06-27 170911](https://github.com/user-attachments/assets/a0439ca8-e43e-418f-8aaa-1eb5dbb4b1e7)
+
+   
+
+
+
