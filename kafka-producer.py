@@ -13,25 +13,36 @@ producer = KafkaProducer(
     value_serializer=lambda v: json.dumps(v).encode('utf-8')
 )
 
-print("🚀 Mengirim gambar dari MinIO ke Kafka...")
+try:
+    print("🚀 Mengirim gambar dari MinIO ke Kafka...")
 
-objects = MINIO_CLIENT.list_objects(BUCKET, prefix=PREFIX, recursive=True)
-for obj in tqdm(objects):
-    if not obj.object_name.lower().endswith(('.jpg', '.jpeg', '.png')): continue
+    objects = list(MINIO_CLIENT.list_objects(BUCKET, prefix=PREFIX, recursive=True))
 
-    response = MINIO_CLIENT.get_object(BUCKET, obj.object_name)
-    img_bytes = response.read()
-    img_b64 = base64.b64encode(img_bytes).decode('utf-8')
-    filename = os.path.basename(obj.object_name)
+    for obj in tqdm(objects):
+        if not obj.object_name.lower().endswith(('.jpg', '.jpeg', '.png')): continue
 
-    message = {
-        "filename": filename,
-        "image": img_b64
-    }
+        response = MINIO_CLIENT.get_object(BUCKET, obj.object_name)
+        img_bytes = response.read()
+        img_b64 = base64.b64encode(img_bytes).decode('utf-8')
+        filename = os.path.basename(obj.object_name)
 
-    producer.send(TOPIC, value=message)
-    print(f"📤 Sent {filename}")
-    time.sleep(0.5)
+        message = {
+            "filename": filename,
+            "image": img_b64
+        }
 
-producer.flush()
-print("✅ Semua gambar sudah dikirim.")
+        producer.send(TOPIC, value=message)
+        time.sleep(0.1)
+
+finally:
+    print("\n -> Memastikan semua pesan terkirim dan menutup koneksi producer...")
+    producer.flush()
+    producer.close()
+    print("✅ Semua gambar sudah dikirim dan koneksi ditutup.")
+
+print("\n--- Producer selesai dengan tugasnya dan sekarang dalam mode idle. ---")
+try:
+    while True:
+        time.sleep(3600)
+except KeyboardInterrupt:
+    print("\n--- Producer dihentikan. ---")
