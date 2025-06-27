@@ -31,7 +31,7 @@ Dataset ini berisi gambar-gambar aktivitas manusia yang sudah dilabeli ke dalam 
 
 ## Arsitektur
 
-![arsitektur](https://github.com/user-attachments/assets/bebf0a98-3d0f-4933-bab1-c7f22b43a61e)
+![arsitektur](https://github.com/user-attachments/assets/a3efa76b-bcf6-497f-b183-290e8a19263a)
 
 1. **User Upload:** Pengguna mengupload gambar melalui antarmuka Streamlit UI.
 2. **Kafka Producer:** Setelah gambar di-upload, gambar tersebut diteruskan ke Kafka Producer untuk diproses dan dikirim sebagai pesan dalam bentuk base64 ke Kafka.
